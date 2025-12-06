@@ -9,6 +9,8 @@ backup/**/*.sql
 postgres/data/
 n8n_data/
 nocodb_data/
+logs/
+logs/**/*.log
 
 # Directorios temporales
 docs/

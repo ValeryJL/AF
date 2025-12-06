@@ -249,6 +249,22 @@ psql -h localhost -U admin -d serviciosaf_db
 ./install.sh --clean
 ```
 
+**Lo que hace install.sh:**
+1. Verifica requisitos (Docker, docker-compose)
+2. Crea estructura de directorios necesarios
+3. Genera `.env` automáticamente con contraseña segura (si no existe)
+4. Descarga imágenes Docker requeridas
+5. Inicia todos los servicios
+6. Restaura backups más recientes si existen
+7. **Ofrece configurar tareas automáticas de cron** (backup diario y actualización semanal)
+
+**Tareas automáticas opcionales:**
+Durante la instalación, el script te preguntará si deseas configurar:
+- ⏰ **Backup automático:** Diariamente a las 22:00 (10 PM)
+- 📅 **Actualización semanal:** Sábados a las 04:00 (4 AM)
+
+Si responde "s", se configurarán automáticamente. Los logs se guardarán en `logs/backup.log` y `logs/update.log`.
+
 ### scripts/backup.sh - Backup de Bases de Datos
 
 ```bash
@@ -301,11 +317,34 @@ cd scripts/
 ./update.sh
 ```
 
+### scripts/setup-cron.sh - Configurar Tareas Automáticas
+
+```bash
+cd scripts/
+
+# Configurar tareas cron (requiere sudo)
+sudo ./setup-cron.sh
+
+# Eliminar todas las tareas cron configuradas
+sudo ./setup-cron.sh --remove
+```
+
+**Tareas configuradas:**
+- **Backup diario:** `0 22 * * *` (22:00 / 10 PM cada día)
+- **Actualización:** `0 4 * * 6` (04:00 / 4 AM cada sábado)
+
+**Logs:**
+- Backup logs: `logs/backup.log`
+- Update logs: `logs/update.log`
+
+**Nota:** Normalmente se configura automáticamente durante `./install.sh`, pero puedes ejecutarlo manualmente si lo necesitas.
+
 ## 📁 Estructura de Directorios
 
 ```
 AF/
 ├── backup/                 # Backups de bases de datos
+├── logs/                   # Logs de tareas cron
 ├── postgres/
 │   ├── data/              # Datos persistentes de PostgreSQL
 │   └── init/              # Scripts de inicialización
@@ -313,13 +352,14 @@ AF/
 ├── nocodb_data/           # Datos de NocoDB
 ├── docs/                  # Documentación y archivos
 ├── scripts/
-│   ├── backup.sh          # Script de backup
-│   ├── restore.sh         # Script de restauración
-│   └── update.sh          # Script de actualización
+│   ├── backup.sh          # Script de backup automático
+│   ├── restore.sh         # Script de restauración de BDs
+│   ├── update.sh          # Script de actualización
+│   └── setup-cron.sh      # Script para configurar tareas cron
 ├── docker-compose.yml     # Configuración de servicios
 ├── .env                   # Variables de entorno (NO commitar)
 ├── .env.example           # Plantilla de .env
-└── install.sh             # Script de instalación
+└── install.sh             # Script de instalación principal
 ```
 
 ## 🔄 Workflow Típico

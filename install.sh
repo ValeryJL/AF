@@ -387,6 +387,37 @@ verify_services() {
 # Mostrar información de acceso
 ################################################################################
 
+setup_cron_tasks() {
+    print_header "CONFIGURACIÓN DE TAREAS PROGRAMADAS"
+    
+    echo "Las tareas programadas ejecutarán automáticamente:"
+    echo "  ${CYAN}• Backup diario${NC} a las 22:00 (10 PM)"
+    echo "  ${CYAN}• Actualización semanal${NC} los sábados a las 04:00"
+    echo ""
+    
+    read -p "¿Deseas configurar estas tareas automáticas? (s/n): " setup_cron_response
+    
+    if [ "$setup_cron_response" = "s" ] || [ "$setup_cron_response" = "S" ]; then
+        if [ ! -f "$SCRIPT_DIR/scripts/setup-cron.sh" ]; then
+            error "No se encontró $SCRIPT_DIR/scripts/setup-cron.sh"
+            warning "Las tareas programadas no serán configuradas"
+            return 1
+        fi
+        
+        info "Ejecutando configuración de cron..."
+        if sudo "$SCRIPT_DIR/scripts/setup-cron.sh"; then
+            success "Tareas programadas configuradas exitosamente"
+        else
+            warning "Hubo un problema al configurar las tareas programadas"
+            warning "Puedes intentarlo manualmente con: sudo $SCRIPT_DIR/scripts/setup-cron.sh"
+        fi
+    else
+        info "Configuración de tareas programadas omitida"
+        echo "Puedes configurarlas después ejecutando: ${CYAN}sudo ./scripts/setup-cron.sh${NC}"
+    fi
+    echo ""
+}
+
 show_access_info() {
     print_header "INSTALACIÓN COMPLETADA"
     
@@ -450,6 +481,9 @@ main() {
     restore_latest_backups
     
     show_access_info
+    
+    # Configurar tareas automáticas
+    setup_cron_tasks
     
     success "¡Instalación completada exitosamente!"
     echo ""
