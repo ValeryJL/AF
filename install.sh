@@ -193,6 +193,48 @@ validate_docker_setup() {
 load_environment() {
     print_step "Cargando variables de entorno..."
     
+    # Si el archivo .env no existe, crear uno
+    if [ ! -f "$ENV_FILE" ]; then
+        info "Archivo .env no encontrado, creando uno..."
+        
+        # Generar contraseña segura
+        local postgres_password=$(openssl rand -base64 32)
+        
+        # Crear .env con valores por defecto
+        cat > "$ENV_FILE" << EOF
+# Configuración de PostgreSQL
+POSTGRES_USER=admin
+POSTGRES_PASSWORD=$postgres_password
+POSTGRES_DB=postgres
+POSTGRES_PORT=5432
+
+# Nombres de bases de datos
+N8N_DB_NAME=n8n_db
+METABASE_DB_NAME=metabase_db
+NOCODB_DB_NAME=nocodb_db
+SERVICIOSAF_DB_NAME=serviciosaf_db
+
+# Configuración de n8n
+NODE_ENV=production
+TIMEZONE=America/Argentina/Buenos_Aires
+N8N_HOST=n8n.example.com
+N8N_PORT=5678
+N8N_PROTOCOL=https
+N8N_WEBHOOK_URL=https://n8n.example.com/
+
+# Token de Cloudflared
+CLOUDFLARED_TOKEN=
+EOF
+        
+        success ".env creado con contraseña segura"
+        warning "⚠️  IMPORTANTE: Edita el .env con tus datos:"
+        echo "  - N8N_HOST: cambiar a tu dominio"
+        echo "  - CLOUDFLARED_TOKEN: agregar tu token de Cloudflare"
+        echo ""
+        info "Luego ejecuta: ./install.sh"
+        exit 0
+    fi
+    
     set -a
     source "$ENV_FILE"
     set +a
@@ -241,56 +283,45 @@ show_configuration() {
 ################################################################################
 
 restore_latest_backups() {
-    print_step "Buscando backups más recientes..."
+    print_step "Restaurando backups más recientes..."
     
     if [ ! -d "${SCRIPT_DIR}/backup" ]; then
         info "No existen backups para restaurar"
         return 0
     fi
     
-    local databases=("n8n_db" "metabase_db" "nocodb_db" "serviciosaf_db")
-    local found_backups=0
+    local count=$(find "${SCRIPT_DIR}/backup" -name "*.sql" -type f 2>/dev/null | wc -l)
     
-    for db in "${databases[@]}"; do
-        local latest_backup=$(ls -t "${SCRIPT_DIR}/backup/${db}_"*.sql 2>/dev/null | head -1)
-        if [ -n "$latest_backup" ]; then
-            ((found_backups++))
-            local backup_date=$(basename "$latest_backup" | grep -oP '\d{4}-\d{2}-\d{2}')
-            info "Encontrado backup de $db del $backup_date"
-        fi
-    done
-    
-    if [ $found_backups -eq 0 ]; then
+    if [ $count -eq 0 ]; then
         info "No se encontraron backups para restaurar"
         return 0
     fi
     
-    echo ""
-    warning "Se encontraron $found_backups backup(s)"
-    read -p "¿Deseas restaurar los backups más recientes? (s/n): " restore_response
+    info "Encontrados $count backup(s). Restaurando..."
     
-    if [ "$restore_response" != "s" ]; then
-        info "Restauración cancelada"
-        return 0
+    # Restaurar n8n_db
+    if [ -f "${SCRIPT_DIR}/backup/n8n_db_2025-12-06.sql" ]; then
+        info "Restaurando n8n_db..."
+        echo "SI" | "${SCRIPT_DIR}/scripts/restore.sh" n8n_db 2025-12-06 >/dev/null 2>&1 && success "n8n_db restaurada" || warning "Error en n8n_db"
     fi
     
-    # Restaurar cada base de datos usando restore.sh
-    for db in "${databases[@]}"; do
-        local latest_backup=$(ls -t "${SCRIPT_DIR}/backup/${db}_"*.sql 2>/dev/null | head -1)
-        if [ -z "$latest_backup" ]; then
-            continue
-        fi
-        
-        local backup_date=$(basename "$latest_backup" | grep -oP '\d{4}-\d{2}-\d{2}')
-        info "Restaurando $db desde $backup_date..."
-        
-        # Usar restore.sh sin confirmación
-        if echo "SI" | "${SCRIPT_DIR}/scripts/restore.sh" "$db" "$backup_date" 2>/dev/null | tail -1 | grep -q "COMPLETADA"; then
-            success "$db restaurada exitosamente"
-        else
-            warning "Error al restaurar $db (continuando...)"
-        fi
-    done
+    # Restaurar metabase_db
+    if [ -f "${SCRIPT_DIR}/backup/metabase_db_2025-12-06.sql" ]; then
+        info "Restaurando metabase_db..."
+        echo "SI" | "${SCRIPT_DIR}/scripts/restore.sh" metabase_db 2025-12-06 >/dev/null 2>&1 && success "metabase_db restaurada" || warning "Error en metabase_db"
+    fi
+    
+    # Restaurar nocodb_db
+    if [ -f "${SCRIPT_DIR}/backup/nocodb_db_2025-12-06.sql" ]; then
+        info "Restaurando nocodb_db..."
+        echo "SI" | "${SCRIPT_DIR}/scripts/restore.sh" nocodb_db 2025-12-06 >/dev/null 2>&1 && success "nocodb_db restaurada" || warning "Error en nocodb_db"
+    fi
+    
+    # Restaurar serviciosaf_db
+    if [ -f "${SCRIPT_DIR}/backup/serviciosaf_db_2025-12-06.sql" ]; then
+        info "Restaurando serviciosaf_db..."
+        echo "SI" | "${SCRIPT_DIR}/scripts/restore.sh" serviciosaf_db 2025-12-06 >/dev/null 2>&1 && success "serviciosaf_db restaurada" || warning "Error en serviciosaf_db"
+    fi
     
     success "Restauración de backups completada"
     echo ""
