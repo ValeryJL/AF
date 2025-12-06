@@ -1,0 +1,33 @@
+# Archivos de configuración sensible
+.env
+.env.local
+.env.*.local
+
+# Datos persistentes (no incluir en git)
+backup/
+backup/**/*.sql
+postgres/data/
+postgres_data/
+n8n_data/
+nocodb_data/
+
+# Carpetas deprecadas
+postgres-init/
+postgres_data/
+
+# Directorios temporales
+docs/
+.DS_Store
+*.log
+
+# Node modules y dependencias
+node_modules/
+*.pyc
+__pycache__/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
