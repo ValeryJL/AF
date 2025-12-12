@@ -1,0 +1,312 @@
+{
+    "createdAt": "2025-08-21T14:39:48.329Z",
+    "updatedAt": "2025-08-25T11:10:41.000Z",
+    "id": "Cdp8gvJ8wmBYpFkm",
+    "name": "Camaras Transformadoras",
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "agregar_trafos",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                0,
+                0
+            ],
+            "id": "ae769a8a-f9a3-44d9-b86a-793c2b8af5f9",
+            "name": "Webhook",
+            "webhookId": "ee27898c-bc62-42ba-8f5e-0c838574cd46"
+        },
+        {
+            "parameters": {
+                "authentication": "nocoDbApiToken",
+                "operation": "create",
+                "projectId": "pg682oogeb06tlc",
+                "table": "mix04t5g5fchblz",
+                "fieldsUi": {
+                    "fieldValues": [
+                        {
+                            "fieldName": "trafo",
+                            "fieldValue": "={{ $('Code').item.json.trafo }}"
+                        },
+                        {
+                            "fieldName": "fecha",
+                            "fieldValue": "={{ $('Code').item.json.fecha_solo }}"
+                        },
+                        {
+                            "fieldName": "tension_l1",
+                            "fieldValue": "={{ $('Code').item.json.tension_l1 }}"
+                        },
+                        {
+                            "fieldName": "tension_l2",
+                            "fieldValue": "={{ $('Code').item.json.tension_l2 }}"
+                        },
+                        {
+                            "fieldName": "tension_l3",
+                            "fieldValue": "={{ $('Code').item.json.tension_l3 }}"
+                        },
+                        {
+                            "fieldName": "corriente_l1",
+                            "fieldValue": "={{ $('Code').item.json.corriente_l1 }}"
+                        },
+                        {
+                            "fieldName": "corriente_l2",
+                            "fieldValue": "={{ $('Code').item.json.corriente_l2 }}"
+                        },
+                        {
+                            "fieldName": "corriente_l3",
+                            "fieldValue": "={{ $('Code').item.json.corriente_l3 }}"
+                        },
+                        {
+                            "fieldName": "potencia_activa_l1",
+                            "fieldValue": "={{ $('Code').item.json.potencia_activa_l1 }}"
+                        },
+                        {
+                            "fieldName": "potencia_activa_l2",
+                            "fieldValue": "={{ $('Code').item.json.potencia_activa_l2 }}"
+                        },
+                        {
+                            "fieldName": "potencia_activa_l3",
+                            "fieldValue": "={{ $('Code').item.json.potencia_activa_l3 }}"
+                        },
+                        {
+                            "fieldName": "fp_l1",
+                            "fieldValue": "={{ $('Code').item.json.factor_potencia_l1 }}"
+                        },
+                        {
+                            "fieldName": "fp_l2",
+                            "fieldValue": "={{ $('Code').item.json.factor_potencia_l2 }}"
+                        },
+                        {
+                            "fieldName": "fp_l3",
+                            "fieldValue": "={{ $('Code').item.json.factor_potencia_l3 }}"
+                        },
+                        {
+                            "fieldName": "frecuencia",
+                            "fieldValue": "={{ $('Code').item.json.frecuencia }}"
+                        },
+                        {
+                            "fieldName": "hora",
+                            "fieldValue": "={{ $('Code').item.json.hora_solo }}"
+                        }
+                    ]
+                }
+            },
+            "type": "n8n-nodes-base.nocoDb",
+            "typeVersion": 3,
+            "position": [
+                1232,
+                96
+            ],
+            "id": "def3eb7f-974c-482a-bd12-e3308e377e54",
+            "name": "Create a row",
+            "credentials": {
+                "nocoDbApiToken": {
+                    "id": "OUdcRDAbw1uMjnC4",
+                    "name": "NocoDB Token account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "const itemsDelWebhook = $input.first().json.body;\n\nreturn itemsDelWebhook.map(item => {\n  // Ejemplo de fecha original que llega de Python: \"14/08/2025 09:09:30\"\n  const fechaOriginal = item.fecha;\n\n  try {\n    if (fechaOriginal && typeof fechaOriginal === 'string') {\n      const [datePart, timePart] = fechaOriginal.split(' ');\n\n      // Separar en variables de fecha y hora\n      const fecha_solo = datePart; // \"14/08/2025\"\n      const hora_solo = timePart; // \"09:09:30\"\n\n      // Agregar las nuevas propiedades al objeto\n      item.fecha_solo = fecha_solo.split(\"/\").reverse().join(\"-\");\n      item.hora_solo = hora_solo;\n\n    } else {\n      item.fecha_solo = null;\n      item.hora_solo = null;\n    }\n  } catch (error) {\n    console.error(`No se pudo procesar la fecha: \"${fechaOriginal}\". Error: ${error.message}`);\n    item.fecha_iso = null;\n    item.fecha_solo = null;\n    item.hora_solo = null;\n  }\n  return { json: item };\n});"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                224,
+                0
+            ],
+            "id": "6c0c0e29-717d-40b0-b473-7d9a200efb74",
+            "name": "Code",
+            "executeOnce": false
+        },
+        {
+            "parameters": {
+                "authentication": "nocoDbApiToken",
+                "operation": "getAll",
+                "projectId": "pg682oogeb06tlc",
+                "table": "mix04t5g5fchblz",
+                "limit": 1,
+                "options": {
+                    "where": "=(trafo,eq,{{ $json.trafo }})~and(fecha,eq,exactDate,{{ $json.fecha_solo }})~and(hora,eq,{{ $json.hora_solo }})"
+                }
+            },
+            "type": "n8n-nodes-base.nocoDb",
+            "typeVersion": 3,
+            "position": [
+                672,
+                16
+            ],
+            "id": "1c36945e-eb7c-44c5-a73d-f02ee2b919a4",
+            "name": "Get many rows",
+            "executeOnce": false,
+            "alwaysOutputData": true,
+            "credentials": {
+                "nocoDbApiToken": {
+                    "id": "OUdcRDAbw1uMjnC4",
+                    "name": "NocoDB Token account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "4d99e7ba-9b9f-4f81-8785-ea6f18f16d11",
+                            "leftValue": "={{ $json }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "object",
+                                "operation": "empty",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.2,
+            "position": [
+                912,
+                80
+            ],
+            "id": "0b77b597-cfa5-4915-8da2-08aac8e3d4db",
+            "name": "If"
+        },
+        {
+            "parameters": {
+                "options": {
+                    "reset": false
+                }
+            },
+            "type": "n8n-nodes-base.splitInBatches",
+            "typeVersion": 3,
+            "position": [
+                448,
+                0
+            ],
+            "id": "69a0369a-1640-4b66-9822-dde547cd0759",
+            "name": "Loop Over Items"
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Code",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create a row": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Over Items",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Over Items",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get many rows": {
+            "main": [
+                [
+                    {
+                        "node": "If",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If": {
+            "main": [
+                [
+                    {
+                        "node": "Create a row",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Loop Over Items",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Loop Over Items": {
+            "main": [
+                [],
+                [
+                    {
+                        "node": "Get many rows",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "staticData": null,
+    "meta": {
+        "templateCredsSetupCompleted": true
+    },
+    "pinData": {},
+    "versionId": "825b8355-cef6-4a91-a201-a93f181c8d11",
+    "triggerCount": 1,
+    "tags": [],
+    "shared": [
+        {
+            "createdAt": "2025-08-21T14:39:48.334Z",
+            "updatedAt": "2025-08-21T14:39:48.334Z",
+            "role": "workflow:owner",
+            "workflowId": "Cdp8gvJ8wmBYpFkm",
+            "projectId": "WeeWqCx9l77SO4fq",
+            "project": {
+                "createdAt": "2025-08-21T14:36:29.100Z",
+                "updatedAt": "2025-08-21T14:36:57.084Z",
+                "id": "WeeWqCx9l77SO4fq",
+                "name": "Valeria Jauregui Lorda <valejlorda@gmail.com>",
+                "type": "personal",
+                "icon": null,
+                "description": null
+            }
+        }
+    ]
+}

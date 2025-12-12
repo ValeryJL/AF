@@ -1,0 +1,183 @@
+{
+    "createdAt": "2025-08-21T14:45:55.655Z",
+    "updatedAt": "2025-08-24T23:22:54.000Z",
+    "id": "W9Vq7ihARAuz9YCy",
+    "name": "Alertas Camaras",
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "minutes",
+                            "minutesInterval": 1
+                        }
+                    ]
+                }
+            },
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.2,
+            "position": [
+                -1104,
+                128
+            ],
+            "id": "eb07366e-0f73-46d0-8e6d-101ed2a4a7d4",
+            "name": "Schedule Trigger"
+        },
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "WITH LatestReadings AS (\n    SELECT\n        trafo,\n        tension_l1, tension_l2, tension_l3,\n        corriente_l1, corriente_l2, corriente_l3,\n        fecha, hora,\n        ROW_NUMBER() OVER(PARTITION BY trafo ORDER BY fecha DESC, hora DESC) as rn\n    FROM datos.camara_eco -- <-- \u00a1Recuerda cambiar esto por tu tabla y esquema!\n),\nLastReception AS (\n    SELECT\n        trafo,\n        -- Combina fecha y hora. PostgreSQL intentar\u00e1 inferir la zona horaria.\n        -- Si 'fecha' es DATE y 'hora' es TIME, la suma puede resultar en un TIMESTAMP SIN zona horaria.\n        MAX(fecha::timestamp + hora::interval) as last_reception_ts\n    FROM datos.camara_eco -- <-- \u00a1Recuerda cambiar esto por tu tabla y esquema!\n    GROUP BY trafo\n)\nSELECT\n    lr.trafo,\n    lr.tension_l1, lr.tension_l2, lr.tension_l3,\n    lr.corriente_l1, lr.corriente_l2, lr.corriente_l3,\n    -- Combina fecha y hora del \u00faltimo registro.\n    (lr.fecha::timestamp + lr.hora::interval) as last_reading_ts,\n    lr.rn,\n    lr_last.last_reception_ts\nFROM LatestReadings lr\nLEFT JOIN LastReception lr_last ON lr.trafo = lr_last.trafo\nWHERE lr.rn = 1;",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.6,
+            "position": [
+                -864,
+                128
+            ],
+            "id": "f2b141f6-96de-438c-a4cb-169c7db1a581",
+            "name": "Execute a SQL query",
+            "executeOnce": false,
+            "credentials": {
+                "postgres": {
+                    "id": "x0D8VdwLH1YhptL3",
+                    "name": "Postgres account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "chatId": "={{ $json.chatId }}",
+                "text": "={{ $json.text }}",
+                "additionalFields": {
+                    "appendAttribution": false
+                }
+            },
+            "type": "n8n-nodes-base.telegram",
+            "typeVersion": 1.2,
+            "position": [
+                -384,
+                128
+            ],
+            "id": "d1db77ae-c603-4fcc-98ff-2b1e3774099e",
+            "name": "Send a text message1",
+            "webhookId": "0de7f169-9928-4526-9f7a-3366f0b945a7",
+            "credentials": {
+                "telegramApi": {
+                    "id": "dEx4S7lDXmZSxiaG",
+                    "name": "Telegram account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// --- Configuraci\u00f3n General ---\nconst TRAFO_STATE_STORAGE_KEY = 'transformerStates';\nconst DATA_STALENESS_THRESHOLD_MS = 60 * 60 * 1000; // 1 hora\n\n// --- Gesti\u00f3n del Estado Global ---\nconst workflowStaticData = $getWorkflowStaticData('global');\n\nif (typeof workflowStaticData[TRAFO_STATE_STORAGE_KEY] !== 'object' || workflowStaticData[TRAFO_STATE_STORAGE_KEY] === null) {\n    workflowStaticData[TRAFO_STATE_STORAGE_KEY] = {};\n}\n\nconst previousTransformerStates = workflowStaticData[TRAFO_STATE_STORAGE_KEY];\n// Declaramos eventsToSend Y aggregatedEvents aqu\u00ed, al inicio, para que sean accesibles al final.\nconst eventsToSend = [];\nconst aggregatedEvents = { // \u00a1DECLARADA CORRECTAMENTE AQU\u00cd!\n    data_supply_failure: { count: 0, transformers: [], lastReadingInfo: null },\n    equipment_failure_voltage: { count: 0, transformers: [], firstReadingInfo: null, values: { l1: [], l2: [], l3: [] } },\n    equipment_failure_no_current: { count: 0, transformers: [], firstReadingInfo: null, values: { l1: [], l2: [], l3: [] } },\n    restoration: { count: 0, transformers: [] }\n};\n\n// --- Funci\u00f3n auxiliar para obtener fecha/hora en UTC y formato legible ---\nfunction getUtcDateInfo(timestampRaw) {\n    if (!timestampRaw) return { iso: null, readable: 'No disponible', dateObj: null, isValid: false };\n    try {\n        const dateFromDb = new Date(timestampRaw);\n        if (isNaN(dateFromDb.getTime())) return { iso: null, readable: 'Inv\u00e1lido', dateObj: null, isValid: false };\n        const correctedDateUtc = new Date(dateFromDb.getTime() + 3 * 60 * 60 * 1000); // Sumamos 3 horas\n        if (isNaN(correctedDateUtc.getTime())) return { iso: null, readable: 'Error Correcci\u00f3n', dateObj: null, isValid: false };\n        const isoString = correctedDateUtc.toISOString();\n        const readableString = `${isoString.split('T')[0].split('-').reverse().join('/')} ${isoString.split('T')[1].substring(0, 8)}`;\n        return { iso: isoString, readable: readableString, dateObj: correctedDateUtc, isValid: true };\n    } catch (error) {\n        return { iso: null, readable: 'Error', dateObj: null, isValid: false };\n    }\n}\n\n// --- Obtener la hora actual del servidor en UTC ---\nconst now = new Date();\nconst currentTimeUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));\n\n// --- Procesamiento de cada Transformador ---\nfor (const item of $input.all()) {\n    const reading = item.json;\n\n    if (!reading || !reading.trafo) continue;\n\n    const trafoId = reading.trafo;\n\n    const lastReadingInfo = getUtcDateInfo(reading.last_reading_ts);\n    const lastReceptionInfo = getUtcDateInfo(reading.last_reception_ts);\n\n    const lastReceptionTimestampUTC = lastReceptionInfo.dateObj;\n    const lastReadingTimestampUTC = lastReadingInfo.dateObj;\n\n    let currentState = 'operational';\n    let currentEventType = null;\n\n    // --- L\u00f3gica de Detecci\u00f3n de Estado ---\n\n    // Prioridad 1: Fallo en Suministro de Datos\n    if (!lastReceptionTimestampUTC || (currentTimeUTC.getTime() - lastReceptionTimestampUTC.getTime() > DATA_STALENESS_THRESHOLD_MS)) {\n        currentState = 'data_supply_failure';\n        currentEventType = 'data_supply_failure';\n    }\n    // Prioridad 2: Fallo de Equipo (Tensi\u00f3n), SI hay suministro de datos recientes\n    else if (\n        lastReceptionTimestampUTC &&\n        (currentTimeUTC.getTime() - lastReceptionTimestampUTC.getTime() <= DATA_STALENESS_THRESHOLD_MS) &&\n        (reading.tension_l1 === \"0\" || reading.tension_l2 === \"0\" || reading.tension_l3 === \"0\")\n    ) {\n        currentState = 'equipment_failure_voltage';\n        currentEventType = 'equipment_failure_voltage';\n    }\n    // Prioridad 3: Fallo de Equipo (Corriente), SI hay suministro de datos recientes y NO hay fallo de tensi\u00f3n\n    else if (\n        lastReceptionTimestampUTC &&\n        (currentTimeUTC.getTime() - lastReceptionTimestampUTC.getTime() <= DATA_STALENESS_THRESHOLD_MS) &&\n        (reading.corriente_l1 === \"0\" || reading.corriente_l2 === \"0\" || reading.corriente_l3 === \"0\")\n    ) {\n        currentState = 'equipment_failure_no_current';\n        currentEventType = 'equipment_failure_no_current';\n    }\n    // Si no hay ning\u00fan fallo, el estado es 'operational'\n\n    // --- Detecci\u00f3n de Cambios de Estado Y Acumulaci\u00f3n para Reporte General ---\n    const previousState = previousTransformerStates[trafoId] || 'unknown';\n\n    // Solo registramos en aggregatedEvents si el estado ha cambiado\n    if (currentState !== previousState) {\n        if (currentState === 'data_supply_failure') {\n            aggregatedEvents.data_supply_failure.count++;\n            aggregatedEvents.data_supply_failure.transformers.push(trafoId);\n            if (lastReadingInfo.isValid) {\n                 if (!aggregatedEvents.data_supply_failure.lastReadingInfo || lastReadingInfo.dateObj > aggregatedEvents.data_supply_failure.lastReadingInfo.dateObj) {\n                    aggregatedEvents.data_supply_failure.lastReadingInfo = lastReadingInfo;\n                 }\n            }\n        } else if (currentState === 'equipment_failure_voltage') {\n            aggregatedEvents.equipment_failure_voltage.count++;\n            aggregatedEvents.equipment_failure_voltage.transformers.push(trafoId);\n            aggregatedEvents.equipment_failure_voltage.values.l1.push(reading.tension_l1);\n            aggregatedEvents.equipment_failure_voltage.values.l2.push(reading.tension_l2);\n            aggregatedEvents.equipment_failure_voltage.values.l3.push(reading.tension_l3);\n        } else if (currentState === 'equipment_failure_no_current') {\n            aggregatedEvents.equipment_failure_no_current.count++;\n            aggregatedEvents.equipment_failure_no_current.transformers.push(trafoId);\n            aggregatedEvents.equipment_failure_no_current.values.l1.push(reading.corriente_l1);\n            aggregatedEvents.equipment_failure_no_current.values.l2.push(reading.corriente_l2);\n            aggregatedEvents.equipment_failure_no_current.values.l3.push(reading.corriente_l3);\n        } else if (currentState === 'operational' && previousState !== 'operational') { // Si se restaur\u00f3\n            aggregatedEvents.restoration.count++;\n            aggregatedEvents.restoration.transformers.push(trafoId);\n        }\n    }\n\n    // Guardar el estado actual para la pr\u00f3xima ejecuci\u00f3n\n    previousTransformerStates[trafoId] = currentState;\n}\n\n// --- Generar el \u00daNICO mensaje de alerta final basado en la prioridad de los CAMBIOS detectados ---\n\nlet finalMessage = null;\nconst hasDataSupplyFailure = aggregatedEvents.data_supply_failure.count > 0;\nconst hasVoltageFailure = aggregatedEvents.equipment_failure_voltage.count > 0;\nconst hasCurrentFailure = aggregatedEvents.equipment_failure_no_current.count > 0;\nconst hasRestoration = aggregatedEvents.restoration.count > 0;\n\n// Prioridad 1: Corte General de Suministro de Datos\nif (hasDataSupplyFailure) {\n    const lastReadingInfo = aggregatedEvents.data_supply_failure.lastReadingInfo;\n    const formattedLastReading = lastReadingInfo ? lastReadingInfo.readable : 'No disponible';\n    finalMessage = `ALERTA: Fallo General en Suministro de Datos!\\n\\nSe han detectado ${aggregatedEvents.data_supply_failure.count} transformadores sin recibir datos recientes.\\n\\nTransformadores afectados: ${aggregatedEvents.data_supply_failure.transformers.join(', ')}\\n\\n\u00daltimo registro detectado (general):\\n- ${formattedLastReading}`;\n}\n// Prioridad 2: Corte de Tensi\u00f3n (si no hubo fallo general de suministro)\nelse if (hasVoltageFailure) {\n    const faultyTransformers = aggregatedEvents.equipment_failure_voltage.transformers;\n    const firstAffectedTransformerId = faultyTransformers[0];\n    const firstAffectedReading = $input.all().find(item => item.json.trafo === firstAffectedTransformerId);\n\n    let relevantReadingInfo = null;\n    if (firstAffectedTransformerId && firstAffectedReading) {\n        relevantReadingInfo = getUtcDateInfo(firstAffectedReading.json.last_reading_ts);\n    }\n\n    const formattedFecha = relevantReadingInfo && relevantReadingInfo.isValid ? relevantReadingInfo.readable.split(' ')[0] : 'Fecha no disponible';\n    const formattedHora = relevantReadingInfo && relevantReadingInfo.isValid ? relevantReadingInfo.readable.split(' ')[1] : 'Hora no disponible';\n    const t1_tension = relevantReadingInfo ? firstAffectedReading.json.tension_l1 : 'N/A';\n    const t2_tension = relevantReadingInfo ? firstAffectedReading.json.tension_l2 : 'N/A';\n    const t3_tension = relevantReadingInfo ? firstAffectedReading.json.tension_l3 : 'N/A';\n\n    finalMessage = `ALERTA GENERAL DE FALLO DE TENSI\u00d3N!\\n\\nSe han detectado ${faultyTransformers.length} transformadores con problemas de tensi\u00f3n.\\n\\nTransformadores afectados: ${faultyTransformers.join(', ')}\\n\\nDetalles del Fallo (ejemplo del primer afectado):\\n- Fecha: ${formattedFecha}\\n- Hora: ${formattedHora}\\n\\nTensiones de L\u00ednea (Valores Registrados):\\n- L1: ${t1_tension} V\\n- L2: ${t2_tension} V\\n- L3: ${t3_tension} V`;\n}\n// Prioridad 3: Corte de Corriente (si no hubo fallo de suministro ni de tensi\u00f3n)\nelse if (hasCurrentFailure) {\n    const faultyTransformers = aggregatedEvents.equipment_failure_no_current.transformers;\n    const firstAffectedTransformerId = faultyTransformers[0];\n    const firstAffectedReading = $input.all().find(item => item.json.trafo === firstAffectedTransformerId);\n\n    let relevantReadingInfo = null;\n    if (firstAffectedTransformerId && firstAffectedReading) {\n        relevantReadingInfo = getUtcDateInfo(firstAffectedReading.json.last_reading_ts);\n    }\n    const formattedFecha = relevantReadingInfo && relevantReadingInfo.isValid ? relevantReadingInfo.readable.split(' ')[0] : 'Fecha no disponible';\n    const formattedHora = relevantReadingInfo && relevantReadingInfo.isValid ? relevantReadingInfo.readable.split(' ')[1] : 'Hora no disponible';\n    const t1_current = relevantReadingInfo ? firstAffectedReading.json.corriente_l1 : 'N/A';\n    const t2_current = relevantReadingInfo ? firstAffectedReading.json.corriente_l2 : 'N/A';\n    const t3_current = relevantReadingInfo ? firstAffectedReading.json.corriente_l3 : 'N/A';\n\n    finalMessage = `ALERTA GENERAL DE CORTE DE CORRIENTE!\\n\\nSe han detectado ${faultyTransformers.length} transformadores sin consumo.\\n\\nTransformadores afectados: ${faultyTransformers.join(', ')}\\n\\nDetalles del Evento (ejemplo del primer afectado):\\n- Fecha: ${formattedFecha}\\n- Hora: ${formattedHora}\\n\\nValores de Corriente (Alerta):\\n- L1: ${t1_current} A\\n- L2: ${t2_current} A\\n- L3: ${t3_current} A`;\n}\n// Prioridad 4: Restauraci\u00f3n General (si no hubo ning\u00fan fallo activo y s\u00ed hubo restauraciones)\nelse if (hasRestoration &&\n         !hasDataSupplyFailure &&\n         !hasVoltageFailure &&\n         !hasCurrentFailure) {\n\n    const restoredTrafos = aggregatedEvents.restoration.transformers;\n    const message = `\u2705 Restauraci\u00f3n General de Operaciones \u2705\\n\\nSe han detectado ${restoredTrafos.length} restauraciones.\\n\\nTransformadores restaurados (de fallo): ${restoredTrafos.join(', ')}`;\n    finalMessage = message;\n}\n\n// --- A\u00f1adir el mensaje final a eventsToSend si existe ---\nif (finalMessage) {\n    eventsToSend.push({\n        chatId: \"1074021963\",\n        text: finalMessage,\n        type: 'general_alert'\n    });\n}\n\n// Devolvemos solo los eventos para enviar\nreturn eventsToSend;"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -640,
+                128
+            ],
+            "id": "51dddc83-e4db-4fbd-9e60-ae5400fe1340",
+            "name": "Code"
+        }
+    ],
+    "connections": {
+        "Schedule Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Execute a SQL query",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Execute a SQL query": {
+            "main": [
+                [
+                    {
+                        "node": "Code",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code": {
+            "main": [
+                [
+                    {
+                        "node": "Send a text message1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "staticData": {
+        "node:Schedule Trigger": {
+            "recurrenceRules": []
+        },
+        "global": {
+            "transformerStates": {
+                "1": "operational",
+                "2": "operational",
+                "3": "operational",
+                "4": "operational"
+            }
+        }
+    },
+    "meta": {
+        "templateCredsSetupCompleted": true
+    },
+    "pinData": {
+        "Schedule Trigger": [
+            {
+                "json": {
+                    "timestamp": "2025-08-21T13:00:48.004-04:00",
+                    "Readable date": "August 21st 2025, 1:00:48 pm",
+                    "Readable time": "1:00:48 pm",
+                    "Day of week": "Thursday",
+                    "Year": "2025",
+                    "Month": "August",
+                    "Day of month": "21",
+                    "Hour": "13",
+                    "Minute": "00",
+                    "Second": "48",
+                    "Timezone": "America/New_York (UTC-04:00)"
+                }
+            }
+        ]
+    },
+    "versionId": "403ab9d9-c509-44a3-a818-9a580f55714b",
+    "triggerCount": 1,
+    "tags": [],
+    "shared": [
+        {
+            "createdAt": "2025-08-21T14:45:55.660Z",
+            "updatedAt": "2025-08-21T14:45:55.660Z",
+            "role": "workflow:owner",
+            "workflowId": "W9Vq7ihARAuz9YCy",
+            "projectId": "WeeWqCx9l77SO4fq",
+            "project": {
+                "createdAt": "2025-08-21T14:36:29.100Z",
+                "updatedAt": "2025-08-21T14:36:57.084Z",
+                "id": "WeeWqCx9l77SO4fq",
+                "name": "Valeria Jauregui Lorda <valejlorda@gmail.com>",
+                "type": "personal",
+                "icon": null,
+                "description": null
+            }
+        }
+    ]
+}

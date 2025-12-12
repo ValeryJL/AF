@@ -1,0 +1,674 @@
+{
+    "createdAt": "2025-08-21T14:45:27.901Z",
+    "updatedAt": "2025-08-24T23:22:56.000Z",
+    "id": "fwG7OMEcAiL8qopf",
+    "name": "PDF",
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+        {
+            "parameters": {
+                "path": "formularios",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                -672,
+                384
+            ],
+            "id": "9daa47f5-256c-4efe-9daa-177beb6fb208",
+            "name": "Webhook",
+            "webhookId": "421029ef-6a56-47a6-a374-4c3da396339f"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "fb162158-d197-4f08-9e02-21be938d31c5",
+                            "leftValue": "={{ $json.body.data.rows[0].tipo }}",
+                            "rightValue": "Inspeccion",
+                            "operator": {
+                                "type": "string",
+                                "operation": "equals",
+                                "name": "filter.operator.equals"
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.2,
+            "position": [
+                -448,
+                384
+            ],
+            "id": "0d5d056e-6d5d-4db3-a08f-5d3671149f6d",
+            "name": "If"
+        },
+        {
+            "parameters": {
+                "rules": {
+                    "values": [
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "={{ $json.body.data.rows[0].servicios.planilla }}",
+                                        "rightValue": "General",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        },
+                                        "id": "5c5a38e3-79a4-4442-a285-4ebd03a74459"
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "General"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "id": "f9857c37-fdee-4ed8-bbc1-5810af419c0f",
+                                        "leftValue": "={{ $json.body.data.rows[0].servicios.planilla }}",
+                                        "rightValue": "Femeba",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals",
+                                            "name": "filter.operator.equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "Femeba"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "id": "d2567f5d-36eb-4005-80a4-749e9b5414fc",
+                                        "leftValue": "={{ $json.body.data.rows[0].servicios.planilla }}",
+                                        "rightValue": "Cetec",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals",
+                                            "name": "filter.operator.equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "Cetec"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "id": "0844ffe9-ceff-4001-8b90-9eb4b40015a8",
+                                        "leftValue": "={{ $json.body.data.rows[0].servicios.planilla }}",
+                                        "rightValue": "San Martin",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals",
+                                            "name": "filter.operator.equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "San Martin"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "id": "49705ffc-cfc5-4356-beae-e05e5e370f01",
+                                        "leftValue": "={{ $json.body.data.rows[0].servicios.planilla }}",
+                                        "rightValue": "San Isidro",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals",
+                                            "name": "filter.operator.equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "San Isidro"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.switch",
+            "typeVersion": 3.2,
+            "position": [
+                -224,
+                336
+            ],
+            "id": "180562bd-0ae4-4fba-bce0-7f2021ae705a",
+            "name": "Switch"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://sheets.googleapis.com/v4/spreadsheets/1fT4AY3HzWndnrrmrV9DpSXnUsS7QlKFcsbr7D28a_HU/values:batchUpdate",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "googleSheetsOAuth2Api",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"valueInputOption\": \"USER_ENTERED\",\n  \"data\": [\n    {\n      \"range\": \"Hoja!E1\",\n      \"values\": [[\"{{ $json.body.data.rows[0].servicios.cliente }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E3\",\n      \"values\": [[\"{{ $json.body.data.rows[0].fecha.split(\"-\").reverse().join(\"/\") }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D6\",\n      \"values\": [[\"{{ $json.body.data.rows[0].temp_antes }}\u00b0C off/ {{ $json.body.data.rows[0].temp_durante }}\u00b0C on\"]]\n    },\n    {\n      \"range\": \"Hoja!D7\",\n      \"values\": [[\"{{ $json.body.data.rows[0].presion_aceite }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D11\",\n      \"values\": [[\"{{ $json.body.data.rows[0].combustible }}%\"]]\n    },\n    {\n      \"range\": \"Hoja!D14\",\n      \"values\": [[\"{{ $json.body.data.rows[0].bateria_antes }}v off/ {{ $json.body.data.rows[0].bateria_durante }}v on\"]]\n    },\n    {\n      \"range\": \"Hoja!D18\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l1 }}v,{{ $json.body.data.rows[0].tension_l2 }}v,{{ $json.body.data.rows[0].tension_l3 }}v   {{ $json.body.data.rows[0].tension_l1_l2 }}v,{{ $json.body.data.rows[0].tension_l1_l3 }}v,{{ $json.body.data.rows[0].tension_l2_l3 }}\"]]\n    },\n    {\n      \"range\": \"Hoja!F18\",\n      \"values\": [[\"{{ $json.body.data.rows[0].frecuencia }}Hz\"]]\n    },\n    {\n      \"range\": \"Hoja!D21\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba con carga\"? \"Si\":\"No\" }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D26\",\n      \"values\": [[\"{{ $json.body.data.rows[0].arranques_antes }} / {{ $json.body.data.rows[0].arranques_despues }} \"]]\n    },\n    {\n      \"range\": \"Hoja!D27\",\n      \"values\": [[\"{{ $json.body.data.rows[0].horas_antes }} / {{ $json.body.data.rows[0].horas_despues }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D28\",\n      \"values\": [[\"{{ $json.body.data.rows[0].horas_prox_service }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D29\",\n      \"values\": [[\"{{ $json.body.data.rows[0].rpm }}\"]]\n    },\n    {\n      \"range\": \"Hoja!B30\",\n      \"values\": [[\"{{ $json.body.data.rows[0].observaciones }}\"]]\n    },\n    {\n      \"range\": \"Hoja!C32\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tecnicos.nombre }} {{ $json.body.data.rows[0].tecnicos.apellido }}\"]]\n    },\n    {\n      \"range\": \"Hoja!B33\",\n      \"values\": [[\"{{ $json.body.data.rows[0].fecha }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E33\",\n      \"values\": [[\"{{ $json.body.data.rows[0].hora }}\"]]\n    },\n    {\n      \"range\": \"Hoja!C34\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tecnicos.nombre }} {{ $json.body.data.rows[0].tecnicos.apellido }}\"]]\n    }\n  ]\n}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                0,
+                0
+            ],
+            "id": "55721425-426f-4a30-976f-d00901e4469f",
+            "name": "Editar general",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "DkPVTwjPerdprJsF",
+                    "name": "Google Sheets account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "url": "https://docs.google.com/spreadsheets/d/1fT4AY3HzWndnrrmrV9DpSXnUsS7QlKFcsbr7D28a_HU/export\n?format=pdf\n&portrait=true\n&fitw=true\n&sheetnames=false\n&printtitle=false\n&pagenumbers=false\n&gridlines=false\n&horizontal_alignment=CENTER\n&vertical_alignment=TOP\n&top_margin=1\n&bottom_margin=0\n&left_margin=0.25\n&right_margin=0.25\n&gid=0",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "googleDriveOAuth2Api",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                224,
+                0
+            ],
+            "id": "50001ff2-a086-42ce-bb91-e90071acd5f3",
+            "name": "Exportar PDF",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "8W6HF1TQYOViJadD",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "name": "={{ $('Webhook').item.json.body.data.rows[0].fecha }} - Planilla {{ $('Webhook').item.json.body.data.rows[0].servicios.nombre }}",
+                "driveId": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "My Drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "1-74d7KD-f0JaVG97IulLUMMpliwPtier",
+                    "mode": "list",
+                    "cachedResultName": "Planillas completadas",
+                    "cachedResultUrl": "https://drive.google.com/drive/folders/1-74d7KD-f0JaVG97IulLUMMpliwPtier"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                448,
+                384
+            ],
+            "id": "c3d89647-f58b-4c62-a443-5cacce8b1ace",
+            "name": "Upload file",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "8W6HF1TQYOViJadD",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://sheets.googleapis.com/v4/spreadsheets/1_D46cNIF3h66qkL0RSarfz49ihwKD-NVPjstkM8V-vc/values:batchUpdate",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "googleSheetsOAuth2Api",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"valueInputOption\": \"USER_ENTERED\",\n  \"data\": [\n    {\n      \"range\": \"Hoja!D2\",\n      \"values\": [[\"{{ $json.body.data.rows[0].servicios.cliente }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D3\",\n      \"values\": [[\"{{ $json.body.data.rows[0].servicios.direccion }}\"]]\n    },\n    {\n      \"range\": \"Hoja!F2\",\n      \"values\": [[\"{{ $json.body.data.rows[0].fecha }}\"]]\n    },\n    {\n      \"range\": \"Hoja!H2\",\n      \"values\": [[\"{{ $json.body.data.rows[0].hora }}\"]]\n    },\n    {\n      \"range\": \"Hoja!H8:H34\",\n      \"values\": [[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"]]\n    },\n    {\n      \"range\": \"Hoja!E10\",\n      \"values\": [[\"{{ $json.body.data.rows[0].presion_aceite }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E11\",\n      \"values\": [[\"{{ $json.body.data.rows[0].temp_antes }}\u00b0C antes / {{ $json.body.data.rows[0].temp_durante }}\u00b0C durante\"]]\n    },\n    {\n      \"range\": \"Hoja!E15\",\n      \"values\": [[\"{{ $json.body.data.rows[0].bateria_antes }}v antes / {{ $json.body.data.rows[0].bateria_durante }}v durante\"]]\n    },\n    {\n      \"range\": \"Hoja!E15\",\n      \"values\": [[\"{{ $json.body.data.rows[0].bateria_antes }}v antes / {{ $json.body.data.rows[0].bateria_durante }}v durante\"]]\n    },\n    {\n      \"range\": \"Hoja!E25\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Ninguna\"?\"\":$json.body.data.rows[0].tipo_prueba }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E32\",\n      \"values\": [[\"{{ $json.body.data.rows[0].horas_antes }} / {{ $json.body.data.rows[0].horas_despues }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E33\",\n      \"values\": [[\"{{ $json.body.data.rows[0].arranques_antes }} / {{ $json.body.data.rows[0].arranques_despues }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E34\",\n      \"values\": [[\"{{ $json.body.data.rows[0].combustible }}%\"]]\n    },\n    {\n      \"range\": \"Hoja!B36\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l1 }}v            {{ $json.body.data.rows[0].tension_l1_l2 }}v\"]]\n    },\n    {\n      \"range\": \"Hoja!B37\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l2 }}v            {{ $json.body.data.rows[0].tension_l2_l3 }}v\"]]\n    },\n    {\n      \"range\": \"Hoja!B38\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l3 }}v            {{ $json.body.data.rows[0].tension_l1_l3 }}v\"]]\n    },\n    {\n      \"range\": \"Hoja!B39\",\n      \"values\": [[\"Frecuencia: {{ $json.body.data.rows[0].frecuencia }}Hz\"]]\n    },\n    {\n      \"range\": \"Hoja!B40\",\n      \"values\": [[\"RPM:        {{ $json.body.data.rows[0].rpm }}\"]]\n    },\n    {\n      \"range\": \"Hoja!B41\",\n      \"values\": [[\"{{ $json.body.data.rows[0].observaciones }}\"]]\n    }\n  ]\n}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                0,
+                192
+            ],
+            "id": "fb92622f-ecd0-405d-9e67-9f3c9a6812bf",
+            "name": "Editar Femeba",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "DkPVTwjPerdprJsF",
+                    "name": "Google Sheets account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "url": "https://docs.google.com/spreadsheets/d/1_D46cNIF3h66qkL0RSarfz49ihwKD-NVPjstkM8V-vc/export\n?format=pdf\n&portrait=true\n&fitw=true\n&sheetnames=false\n&printtitle=false\n&pagenumbers=false\n&gridlines=false\n&horizontal_alignment=CENTER\n&vertical_alignment=TOP\n&top_margin=1\n&bottom_margin=0\n&left_margin=0.25\n&right_margin=0.25\n&gid=0",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "googleDriveOAuth2Api",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                224,
+                192
+            ],
+            "id": "e3a87129-8e2d-47c3-a733-68a3197b9fbf",
+            "name": "Exportar PDF1",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "8W6HF1TQYOViJadD",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "url": "=https://docs.google.com/spreadsheets/d/1gFqvklaZy5sVLJVpvrF2xKeqDpwOQanX7gMVFv3xtNs/export\n?format=pdf\n&portrait=false\n&scale=4\n&sheetnames=false\n&printtitle=false\n&pagenumbers=false\n&gridlines=false\n&horizontal_alignment=CENTER\n&top_margin=0.5\n&bottom_margin=0.5\n&left_margin=0\n&right_margin=0",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "googleDriveOAuth2Api",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                224,
+                384
+            ],
+            "id": "9d6fb793-9d70-4587-83a1-adc8ffa730db",
+            "name": "Exportar PDF2",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "8W6HF1TQYOViJadD",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://sheets.googleapis.com/v4/spreadsheets/1gFqvklaZy5sVLJVpvrF2xKeqDpwOQanX7gMVFv3xtNs/values:batchUpdate",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "googleSheetsOAuth2Api",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"valueInputOption\": \"USER_ENTERED\",\n  \"data\": [\n    {\n      \"range\": \"Hoja!C12\",\n      \"values\": [[\"{{ $json.body.data.rows[0].fecha.split(\"-\").reverse().join(\"/\") }}\"]]\n    },\n    {\n      \"range\": \"Hoja!C13\",\n      \"values\": [[\"{{ $json.body.data.rows[0].hora.split(\":\").slice(0,2).join(\":\") }}\"]]\n    },\n    {\n      \"range\": \"Hoja!C15\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tecnicos.nombre }} {{ $json.body.data.rows[0].tecnicos.apellido }}\"]]\n    },\n    {\n      \"range\": \"Hoja!B18\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba sin carga\"?\"x\":\"\" }}\"]]\n    },\n    {\n      \"range\": \"Hoja!B19\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba con carga\"?\"x\":\"\" }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D24\",\n      \"values\": [[\"{{ $json.body.data.rows[0].horas_antes }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E24\",\n      \"values\": [[\"{{ $json.body.data.rows[0].horas_despues }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D25\",\n      \"values\": [[\"{{ $json.body.data.rows[0].arranques_antes }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E25\",\n      \"values\": [[\"{{ $json.body.data.rows[0].arranques_despues }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D26\",\n      \"values\": [[\"{{ $json.body.data.rows[0].energia_activa }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E26\",\n      \"values\": [[\"{{ $json.body.data.rows[0].energia_activa }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D27\",\n      \"values\": [[\"{{ $json.body.data.rows[0].energia_reactiva }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E27\",\n      \"values\": [[\"{{ $json.body.data.rows[0].energia_reactiva }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D28\",\n      \"values\": [[\"{{ $json.body.data.rows[0].horas_prox_service }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E28\",\n      \"values\": [[\"{{ $json.body.data.rows[0].horas_prox_service }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D29\",\n      \"values\": [[\"{{ $json.body.data.rows[0].temp_antes }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E29\",\n      \"values\": [[\"{{ $json.body.data.rows[0].temp_durante }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D30\",\n      \"values\": [[\"{{ $json.body.data.rows[0].combustible }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E30\",\n      \"values\": [[\"{{ $json.body.data.rows[0].combustible }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D31\",\n      \"values\": [[\"{{ $json.body.data.rows[0].bateria_antes }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E31\",\n      \"values\": [[\"{{ $json.body.data.rows[0].bateria_durante }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D32:D37\",\n      \"values\": [[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"]]\n    },\n    {\n      \"range\": \"Hoja!E32:E37\",\n      \"values\": [[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"]]\n    },\n    {\n      \"range\": \"Hoja!I7\",\n      \"values\": [[\"{{ $json.body.data.rows[0].presion_aceite }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I8\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l1 }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I9\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l2 }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I10\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l3 }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I11\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l1_l2 }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I12\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l2_l3 }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I13\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l1_l3 }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I14\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba sin carga\"?$json.body.data.rows[0].frecuencia:\"\"}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I15\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba sin carga\"?$json.body.data.rows[0].rpm:\"\"}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I16\",\n      \"values\": [[\"{{ $json.body.data.rows[0].temp_durante}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I17\",\n      \"values\": [[\"{{ $json.body.data.rows[0].bateria_durante}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I18\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba con carga\"?$json.body.data.rows[0].frecuencia+\"Hz\":\"\" }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I19\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba con carga\"?$json.body.data.rows[0].potencia_l1+\"/\"+$json.body.data.rows[0].fp_l1:\"\"}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I20\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba con carga\"?$json.body.data.rows[0].potencia_l2+\"/\"+$json.body.data.rows[0].fp_l2:\"\"}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I21\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba con carga\"?$json.body.data.rows[0].potencia_l3+\"/\"+$json.body.data.rows[0].fp_l3:\"\"}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I22\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba con carga\"?$json.body.data.rows[0].rpm:\"\"}}\"]]\n    },\n    {\n      \"range\": \"Hoja!G27\",\n      \"values\": [[\"{{ $json.body.data.rows[0].observaciones }}\"]]\n    }\n  ]\n}\n",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                0,
+                384
+            ],
+            "id": "e73db171-dc70-4170-8a19-7ae1a44c9975",
+            "name": "Editar Cetec",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "DkPVTwjPerdprJsF",
+                    "name": "Google Sheets account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "url": "https://docs.google.com/spreadsheets/d/1YR3SnUuOT0wtAzGUxCn0WCcdDkAgzLJoJrB15dXJKTw/export\n?format=pdf\n&portrait=false\n&scale=4\n&sheetnames=false\n&printtitle=false\n&pagenumbers=false\n&gridlines=false\n&horizontal_alignment=CENTER\n&top_margin=0.5\n&bottom_margin=0.5\n&left_margin=0\n&right_margin=0",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "googleDriveOAuth2Api",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                224,
+                576
+            ],
+            "id": "531cc278-ea7f-4353-b863-de80228cae00",
+            "name": "Exportar PDF3",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "8W6HF1TQYOViJadD",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://sheets.googleapis.com/v4/spreadsheets/1YR3SnUuOT0wtAzGUxCn0WCcdDkAgzLJoJrB15dXJKTw/values:batchUpdate",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "googleSheetsOAuth2Api",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"valueInputOption\": \"USER_ENTERED\",\n  \"data\": [\n    {\n      \"range\": \"Hoja!C12\",\n      \"values\": [[\"{{ $json.body.data.rows[0].fecha.split(\"-\").reverse().join(\"/\") }}\"]]\n    },\n    {\n      \"range\": \"Hoja!C13\",\n      \"values\": [[\"{{ $json.body.data.rows[0].hora.split(\":\").slice(0,2).join(\":\") }}\"]]\n    },\n    {\n      \"range\": \"Hoja!C15\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tecnicos.nombre }} {{ $json.body.data.rows[0].tecnicos.apellido }}\"]]\n    },\n    {\n      \"range\": \"Hoja!B18\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba sin carga\"?\"x\":\"\" }}\"]]\n    },\n    {\n      \"range\": \"Hoja!B19\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba con carga\"?\"x\":\"\" }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D24\",\n      \"values\": [[\"{{ $json.body.data.rows[0].horas_antes }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E24\",\n      \"values\": [[\"{{ $json.body.data.rows[0].horas_despues }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D25\",\n      \"values\": [[\"{{ $json.body.data.rows[0].arranques_antes }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E25\",\n      \"values\": [[\"{{ $json.body.data.rows[0].arranques_despues }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D26\",\n      \"values\": [[\"{{ $json.body.data.rows[0].energia_activa }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E26\",\n      \"values\": [[\"{{ $json.body.data.rows[0].energia_activa }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D27\",\n      \"values\": [[\"{{ $json.body.data.rows[0].energia_reactiva }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E27\",\n      \"values\": [[\"{{ $json.body.data.rows[0].energia_reactiva }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D28\",\n      \"values\": [[\"{{ $json.body.data.rows[0].horas_prox_service }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E28\",\n      \"values\": [[\"{{ $json.body.data.rows[0].horas_prox_service }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D29\",\n      \"values\": [[\"{{ $json.body.data.rows[0].temp_antes }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E29\",\n      \"values\": [[\"{{ $json.body.data.rows[0].temp_durante }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D30\",\n      \"values\": [[\"{{ $json.body.data.rows[0].combustible }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E30\",\n      \"values\": [[\"{{ $json.body.data.rows[0].combustible }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D31\",\n      \"values\": [[\"{{ $json.body.data.rows[0].bateria_antes }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E31\",\n      \"values\": [[\"{{ $json.body.data.rows[0].bateria_durante }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D32:D37\",\n      \"values\": [[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"]]\n    },\n    {\n      \"range\": \"Hoja!E32:E37\",\n      \"values\": [[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"]]\n    },\n    {\n      \"range\": \"Hoja!I7\",\n      \"values\": [[\"{{ $json.body.data.rows[0].presion_aceite }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I8\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l1 }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I9\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l2 }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I10\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l3 }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I11\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l1_l2 }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I12\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l2_l3 }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I13\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l1_l3 }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I14\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba sin carga\"?$json.body.data.rows[0].frecuencia:\"\"}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I15\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba sin carga\"?$json.body.data.rows[0].rpm:\"\"}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I16\",\n      \"values\": [[\"{{ $json.body.data.rows[0].temp_durante}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I17\",\n      \"values\": [[\"{{ $json.body.data.rows[0].bateria_durante}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I18\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba con carga\"?$json.body.data.rows[0].frecuencia+\"Hz\":\"\" }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I19\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba con carga\"?$json.body.data.rows[0].potencia_l1+\"/\"+$json.body.data.rows[0].fp_l1:\"\"}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I20\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba con carga\"?$json.body.data.rows[0].potencia_l2+\"/\"+$json.body.data.rows[0].fp_l2:\"\"}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I21\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba con carga\"?$json.body.data.rows[0].potencia_l3+\"/\"+$json.body.data.rows[0].fp_l3:\"\"}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I22\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba con carga\"?$json.body.data.rows[0].rpm:\"\"}}\"]]\n    },\n    {\n      \"range\": \"Hoja!G27\",\n      \"values\": [[\"{{ $json.body.data.rows[0].observaciones }}\"]]\n    }\n  ]\n}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                0,
+                576
+            ],
+            "id": "726946d2-914a-478d-b4b9-1fb2237896b3",
+            "name": "Editar San Martin",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "DkPVTwjPerdprJsF",
+                    "name": "Google Sheets account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "url": "https://docs.google.com/spreadsheets/d/1CqLpe1fo2ObODcTRuDGCSTglXcKcQiI8uZNp8Jvadfw/export\n?format=pdf\n&portrait=false\n&scale=4\n&sheetnames=false\n&printtitle=false\n&pagenumbers=false\n&gridlines=false\n&horizontal_alignment=CENTER\n&top_margin=0.5\n&bottom_margin=0.5\n&left_margin=0\n&right_margin=0",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "googleDriveOAuth2Api",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                224,
+                768
+            ],
+            "id": "746daa94-f09d-4705-9c29-0849518682df",
+            "name": "Exportar PDF4",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "8W6HF1TQYOViJadD",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://sheets.googleapis.com/v4/spreadsheets/1CqLpe1fo2ObODcTRuDGCSTglXcKcQiI8uZNp8Jvadfw/values:batchUpdate",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "googleSheetsOAuth2Api",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"valueInputOption\": \"USER_ENTERED\",\n  \"data\": [\n    {\n      \"range\": \"Hoja!C12\",\n      \"values\": [[\"{{ $json.body.data.rows[0].fecha.split(\"-\").reverse().join(\"/\") }}\"]]\n    },\n    {\n      \"range\": \"Hoja!C13\",\n      \"values\": [[\"{{ $json.body.data.rows[0].hora.split(\":\").slice(0,2).join(\":\") }}\"]]\n    },\n    {\n      \"range\": \"Hoja!C15\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tecnicos.nombre }} {{ $json.body.data.rows[0].tecnicos.apellido }}\"]]\n    },\n    {\n      \"range\": \"Hoja!B18\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba sin carga\"?\"x\":\"\" }}\"]]\n    },\n    {\n      \"range\": \"Hoja!B19\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba con carga\"?\"x\":\"\" }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D24\",\n      \"values\": [[\"{{ $json.body.data.rows[0].horas_antes }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E24\",\n      \"values\": [[\"{{ $json.body.data.rows[0].horas_despues }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D25\",\n      \"values\": [[\"{{ $json.body.data.rows[0].arranques_antes }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E25\",\n      \"values\": [[\"{{ $json.body.data.rows[0].arranques_despues }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D26\",\n      \"values\": [[\"{{ $json.body.data.rows[0].energia_activa }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E26\",\n      \"values\": [[\"{{ $json.body.data.rows[0].energia_activa }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D27\",\n      \"values\": [[\"{{ $json.body.data.rows[0].energia_reactiva }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E27\",\n      \"values\": [[\"{{ $json.body.data.rows[0].energia_reactiva }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D28\",\n      \"values\": [[\"{{ $json.body.data.rows[0].horas_prox_service }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E28\",\n      \"values\": [[\"{{ $json.body.data.rows[0].horas_prox_service }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D29\",\n      \"values\": [[\"{{ $json.body.data.rows[0].temp_antes }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E29\",\n      \"values\": [[\"{{ $json.body.data.rows[0].temp_durante }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D30\",\n      \"values\": [[\"{{ $json.body.data.rows[0].combustible }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E30\",\n      \"values\": [[\"{{ $json.body.data.rows[0].combustible }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D31\",\n      \"values\": [[\"{{ $json.body.data.rows[0].bateria_antes }}\"]]\n    },\n    {\n      \"range\": \"Hoja!E31\",\n      \"values\": [[\"{{ $json.body.data.rows[0].bateria_durante }}\"]]\n    },\n    {\n      \"range\": \"Hoja!D32:D37\",\n      \"values\": [[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"]]\n    },\n    {\n      \"range\": \"Hoja!E32:E37\",\n      \"values\": [[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"],[\"ok\"]]\n    },\n    {\n      \"range\": \"Hoja!I7\",\n      \"values\": [[\"{{ $json.body.data.rows[0].presion_aceite }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I8\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l1 }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I9\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l2 }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I10\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l3 }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I11\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l1_l2 }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I12\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l2_l3 }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I13\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tension_l1_l3 }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I14\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba sin carga\"?$json.body.data.rows[0].frecuencia:\"\"}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I15\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba sin carga\"?$json.body.data.rows[0].rpm:\"\"}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I16\",\n      \"values\": [[\"{{ $json.body.data.rows[0].temp_durante}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I17\",\n      \"values\": [[\"{{ $json.body.data.rows[0].bateria_durante}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I18\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba con carga\"?$json.body.data.rows[0].frecuencia+\"Hz\":\"\" }}\"]]\n    },\n    {\n      \"range\": \"Hoja!I19\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba con carga\"?$json.body.data.rows[0].potencia_l1+\"/\"+$json.body.data.rows[0].fp_l1:\"\"}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I20\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba con carga\"?$json.body.data.rows[0].potencia_l2+\"/\"+$json.body.data.rows[0].fp_l2:\"\"}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I21\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba con carga\"?$json.body.data.rows[0].potencia_l3+\"/\"+$json.body.data.rows[0].fp_l3:\"\"}}\"]]\n    },\n    {\n      \"range\": \"Hoja!I22\",\n      \"values\": [[\"{{ $json.body.data.rows[0].tipo_prueba==\"Prueba con carga\"?$json.body.data.rows[0].rpm:\"\"}}\"]]\n    },\n    {\n      \"range\": \"Hoja!G27\",\n      \"values\": [[\"{{ $json.body.data.rows[0].observaciones }}\"]]\n    }\n  ]\n}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                0,
+                768
+            ],
+            "id": "2e3a69a0-2eb1-491c-9682-f680875136e7",
+            "name": "Editar San Isidro",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "DkPVTwjPerdprJsF",
+                    "name": "Google Sheets account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "If",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If": {
+            "main": [
+                [
+                    {
+                        "node": "Switch",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Switch": {
+            "main": [
+                [
+                    {
+                        "node": "Editar general",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Editar Femeba",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Editar Cetec",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Editar San Martin",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Editar San Isidro",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Editar general": {
+            "main": [
+                [
+                    {
+                        "node": "Exportar PDF",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Exportar PDF": {
+            "main": [
+                [
+                    {
+                        "node": "Upload file",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Editar Femeba": {
+            "main": [
+                [
+                    {
+                        "node": "Exportar PDF1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Exportar PDF1": {
+            "main": [
+                [
+                    {
+                        "node": "Upload file",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Editar Cetec": {
+            "main": [
+                [
+                    {
+                        "node": "Exportar PDF2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Exportar PDF2": {
+            "main": [
+                [
+                    {
+                        "node": "Upload file",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Editar San Martin": {
+            "main": [
+                [
+                    {
+                        "node": "Exportar PDF3",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Exportar PDF3": {
+            "main": [
+                [
+                    {
+                        "node": "Upload file",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Editar San Isidro": {
+            "main": [
+                [
+                    {
+                        "node": "Exportar PDF4",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Exportar PDF4": {
+            "main": [
+                [
+                    {
+                        "node": "Upload file",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "staticData": null,
+    "meta": {
+        "templateCredsSetupCompleted": true
+    },
+    "pinData": {},
+    "versionId": "12c886b0-0711-420f-a4de-bf1c2a351735",
+    "triggerCount": 1,
+    "tags": [],
+    "shared": [
+        {
+            "createdAt": "2025-08-21T14:45:27.906Z",
+            "updatedAt": "2025-08-21T14:45:27.906Z",
+            "role": "workflow:owner",
+            "workflowId": "fwG7OMEcAiL8qopf",
+            "projectId": "WeeWqCx9l77SO4fq",
+            "project": {
+                "createdAt": "2025-08-21T14:36:29.100Z",
+                "updatedAt": "2025-08-21T14:36:57.084Z",
+                "id": "WeeWqCx9l77SO4fq",
+                "name": "Valeria Jauregui Lorda <valejlorda@gmail.com>",
+                "type": "personal",
+                "icon": null,
+                "description": null
+            }
+        }
+    ]
+}
