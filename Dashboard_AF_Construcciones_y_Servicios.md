@@ -75,12 +75,12 @@ Este es el tablero principal para AF Construcciones y Servicios que proporciona 
 ```sql
 WITH total_inspecciones AS (
   SELECT COUNT(*) as total
-  FROM datos.informes_servicios 
+  FROM informes_servicios 
   WHERE tipo ILIKE 'Inspeccion'
 ),
 inspecciones_mes AS (
   SELECT COUNT(*) as mes_actual
-  FROM datos.informes_servicios 
+  FROM informes_servicios 
   WHERE tipo ILIKE 'Inspeccion'
     AND fecha >= DATE_TRUNC('month', CURRENT_DATE)
 )
@@ -101,12 +101,12 @@ FROM total_inspecciones ti, inspecciones_mes im;
 ```sql
 WITH total_inspecciones AS (
   SELECT COUNT(*) as total
-  FROM datos.informes_servicios 
+  FROM informes_servicios 
   WHERE tipo ILIKE 'Service'
 ),
 inspecciones_mes AS (
   SELECT COUNT(*) as mes_actual
-  FROM datos.informes_servicios 
+  FROM informes_servicios 
   WHERE tipo ILIKE 'Service'
     AND fecha >= DATE_TRUNC('month', CURRENT_DATE)
 )
@@ -127,12 +127,12 @@ FROM total_inspecciones ti, inspecciones_mes im;
 ```sql
 WITH total_inspecciones AS (
   SELECT COUNT(*) as total
-  FROM datos.informes_servicios 
+  FROM informes_servicios 
   WHERE tipo ILIKE 'Eventual'
 ),
 inspecciones_mes AS (
   SELECT COUNT(*) as mes_actual
-  FROM datos.informes_servicios 
+  FROM informes_servicios 
   WHERE tipo ILIKE 'Eventual'
     AND fecha >= DATE_TRUNC('month', CURRENT_DATE)
 )
@@ -157,7 +157,7 @@ WITH servicios_semanales AS (
     s.nombre AS servicio,
     s.alta,
     DATE_TRUNC('week', s.alta + INTERVAL '2 days')::date AS lunes_inicial
-  FROM datos.servicios s
+  FROM servicios s
   WHERE s.frecuencia ILIKE 'semanal'
 ),
 semanas_transcurridas AS (
@@ -172,7 +172,7 @@ inspecciones_realizadas AS (
   SELECT
     i.servicios_id AS servicio_id,
     COUNT(*) AS inspecciones_realizadas
-  FROM datos.informes_servicios i
+  FROM informes_servicios i
   WHERE i.tipo ILIKE 'inspeccion'
   GROUP BY i.servicios_id
 )
@@ -196,7 +196,7 @@ WITH servicios_quincenales AS (
     s.id AS servicio_id,
     s.nombre AS servicio,
     s.alta
-  FROM datos.servicios s
+  FROM servicios s
   WHERE s.frecuencia ILIKE 'quincenal'
 ),
 quincenas_esperadas AS (
@@ -219,7 +219,7 @@ inspecciones_realizadas AS (
   SELECT
     i.servicios_id AS servicio_id,
     COUNT(*) AS inspecciones_realizadas
-  FROM datos.informes_servicios i
+  FROM informes_servicios i
   WHERE i.tipo ILIKE 'inspeccion'
   GROUP BY i.servicios_id
 )
@@ -242,7 +242,7 @@ WITH servicios_mensuales AS (
     s.id AS servicio_id,
     s.nombre AS servicio,
     s.alta
-  FROM datos.servicios s
+  FROM servicios s
   WHERE s.frecuencia ILIKE 'mensual'
 ),
 meses_esperados AS (
@@ -257,7 +257,7 @@ inspecciones_realizadas AS (
   SELECT
     i.servicios_id AS servicio_id,
     COUNT(*) AS inspecciones_realizadas
-  FROM datos.informes_servicios i
+  FROM informes_servicios i
   WHERE i.tipo ILIKE 'inspeccion'
   GROUP BY i.servicios_id
 )
@@ -285,23 +285,23 @@ WITH parametros AS (
   SELECT
     DATE_TRUNC('month', MAX(fecha))::date AS mes_actual,
     CURRENT_DATE AS hoy
-  FROM datos.informes_servicios
+  FROM informes_servicios
   WHERE {{mes}}
 ),
 base_servicios AS (
   SELECT s.id, s.nombre
-  FROM datos.servicios s,
+  FROM servicios s,
        parametros p
   WHERE s.frecuencia = 'Mensual'
     AND (s.alta IS NULL OR s.alta <= p.mes_actual + INTERVAL '1 month - 1 day')
     AND (s.baja IS NULL OR s.baja >= p.mes_actual)
-	and s.tipo IN (SELECT tipo FROM datos.servicios WHERE {{tipo}})
+	and s.tipo IN (SELECT tipo FROM servicios WHERE {{tipo}})
 ),
 inspecciones AS (
   SELECT
     iserv.servicios_id AS servicio_id,
     DATE_TRUNC('month', iserv.fecha)::date AS mes_inspeccion
-  FROM datos.informes_servicios iserv
+  FROM informes_servicios iserv
   WHERE iserv.tipo = 'Inspeccion'
 ),
 estado_mensual AS (
@@ -336,7 +336,7 @@ WITH parametros AS (
     DATE_TRUNC('month', MAX(fecha))::date AS primer_dia_mes,
     (DATE_TRUNC('month', MAX(fecha)) + INTERVAL '1 month - 1 day')::date AS ultimo_dia_mes,
     CURRENT_DATE AS hoy
-  FROM datos.informes_servicios
+  FROM informes_servicios
   WHERE {{mes}}
 ),
 quincenas AS (
@@ -354,18 +354,18 @@ quincenas AS (
 ),
 base_servicios AS (
   SELECT s.id, s.nombre
-  FROM datos.servicios s
+  FROM servicios s
   CROSS JOIN parametros p
   WHERE s.frecuencia = 'Quincenal'
   AND s.alta < p.ultimo_dia_mes
   AND s.baja > p.primer_dia_mes
-  and s.tipo IN (SELECT tipo FROM datos.servicios WHERE {{tipo}})
+  and s.tipo IN (SELECT tipo FROM servicios WHERE {{tipo}})
 ),
 inspecciones AS (
   SELECT
     iserv.servicios_id,
     iserv.fecha
-  FROM datos.informes_servicios iserv
+  FROM informes_servicios iserv
   WHERE iserv.tipo = 'Inspeccion'
 ),
 estado_quincenal AS (
@@ -407,7 +407,7 @@ WITH parametros AS (
     DATE_TRUNC('month', MAX(fecha))::date AS primer_dia_mes,
     (DATE_TRUNC('month', MAX(fecha)) + INTERVAL '1 month - 1 day')::date AS ultimo_dia_mes,
     CURRENT_DATE AS hoy
-  FROM datos.informes_servicios
+  FROM informes_servicios
   WHERE {{mes}}
 ),
 semanas AS (
@@ -468,7 +468,7 @@ limites_validos AS (
 ),
 servicios_semanales AS (
   SELECT id AS servicio_id, nombre AS servicio
-  FROM datos.servicios
+  FROM servicios
   WHERE frecuencia ILIKE 'semanal'
   	AND alta < (SELECT ultimo_dia_mes FROM parametros)
 	AND baja > (SELECT primer_dia_mes FROM parametros)
@@ -478,7 +478,7 @@ inspecciones AS (
   SELECT
     i.servicios_id AS servicio_id,
     i.fecha
-  FROM datos.informes_servicios i
+  FROM informes_servicios i
   WHERE tipo ILIKE 'inspeccion'
 ),
 estado_semanal AS (
@@ -526,7 +526,7 @@ ORDER BY servicio;
 ```sql
 WITH ultima_fecha AS (
   SELECT MAX(fecha) AS f
-  FROM datos.informes_servicios
+  FROM informes_servicios
   WHERE
   	{{fecha}}
 )
@@ -568,11 +568,11 @@ SELECT
     ),
     'Agregar alta o service'
   ) AS ultima_fecha_service
-FROM datos.servicios s
-LEFT JOIN datos.informes_servicios iserv
+FROM servicios s
+LEFT JOIN informes_servicios iserv
   ON iserv.servicios_id = s.id
   AND iserv.tipo = 'Service'
-WHERE s.id = (SELECT id FROM datos.servicios WHERE {{servicio}});
+WHERE s.id = (SELECT id FROM servicios WHERE {{servicio}});
 ```
 
 #### 3.2 Partes Vencidas (Card ID: 51)
@@ -607,9 +607,9 @@ SELECT
   CONCAT(t.nombre, ' ', t.apellido) AS tecnico,
   iserv.observaciones
 
-FROM datos.informes_servicios iserv
-JOIN datos.tecnicos t ON t.id = iserv.tecnicos_id
-WHERE iserv.servicios_id = (SELECT id FROM datos.servicios WHERE {{servicio}})
+FROM informes_servicios iserv
+JOIN tecnicos t ON t.id = iserv.tecnicos_id
+WHERE iserv.servicios_id = (SELECT id FROM servicios WHERE {{servicio}})
 ORDER BY iserv.fecha DESC;
 ```
 
@@ -618,8 +618,8 @@ ORDER BY iserv.fecha DESC;
 - **Parámetros:** Servicio
 - **Query:**
 ```sql
-SELECT fecha,descripcion FROM datos.eventuales 
-WHERE (SELECT id FROM datos.servicios WHERE {{servicio}})=servicios_id 
+SELECT fecha,descripcion FROM eventuales 
+WHERE (SELECT id FROM servicios WHERE {{servicio}})=servicios_id 
 and informes_servicios_id IS NULL
 ```
 
@@ -673,9 +673,9 @@ WITH servicio_partes AS (
     p.duracion_horas,
     p.duracion_dias,
     s.alta::date AS alta
-  FROM datos.partes p
-  JOIN datos.servicios_partes sp ON sp.partes_id = p.id
-  JOIN datos.servicios s ON s.id = sp.servicios_id
+  FROM partes p
+  JOIN servicios_partes sp ON sp.partes_id = p.id
+  JOIN servicios s ON s.id = sp.servicios_id
 ),
 ultimo_cambio_parte AS (
   SELECT DISTINCT ON (isp.partes_id)
@@ -683,8 +683,8 @@ ultimo_cambio_parte AS (
     iserv.servicios_id,
     iserv.fecha::date AS fecha_cambio,
     iserv.horas_despues AS horas_cambio
-  FROM datos.informes_servicios_partes isp
-  JOIN datos.informes_servicios iserv ON iserv.id = isp.informes_servicios_id
+  FROM informes_servicios_partes isp
+  JOIN informes_servicios iserv ON iserv.id = isp.informes_servicios_id
   ORDER BY isp.partes_id, iserv.fecha DESC
 ),
 ultima_inspeccion AS (
@@ -692,14 +692,14 @@ ultima_inspeccion AS (
     iserv.servicios_id,
     MAX(iserv.fecha)::date AS fecha_ultima,
     MAX(iserv.horas_despues) AS horas_ultima
-  FROM datos.informes_servicios iserv
+  FROM informes_servicios iserv
   GROUP BY iserv.servicios_id
 ),
 primera_inspeccion AS (
   SELECT
     iserv.servicios_id,
     MIN(iserv.horas_antes) AS horas_primera
-  FROM datos.informes_servicios iserv
+  FROM informes_servicios iserv
   GROUP BY iserv.servicios_id
 ),
 calculos AS (
@@ -761,8 +761,8 @@ SELECT
   e.fecha,
   s.nombre AS servicio,
   e.descripcion
-FROM datos.eventuales e
-JOIN datos.servicios s 
+FROM eventuales e
+JOIN servicios s 
   ON s.id = e.servicios_id
 WHERE e.informes_servicios_id IS NULL;
 ```
