@@ -156,6 +156,14 @@ Type: CNAME
 URL: nocodb:8080
 ```
 
+#### Para Portainer
+```
+Subdomain: portainer
+Domain: tudominio.com
+Type: CNAME
+URL: portainer:9000
+```
+
 ### Paso 3: Guardar Token en .env
 
 Copia el token en tu `.env`:
