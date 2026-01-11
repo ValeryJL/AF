@@ -283,7 +283,7 @@ show_configuration() {
 ################################################################################
 
 restore_latest_backups() {
-    print_step "Restaurando backups más recientes..."
+    print_step "Restaurando backups más recientes usando nuevo restore.sh..."
     
     if [ ! -d "${SCRIPT_DIR}/backup" ]; then
         info "No existen backups para restaurar"
@@ -297,33 +297,15 @@ restore_latest_backups() {
         return 0
     fi
     
-    info "Encontrados $count backup(s). Restaurando..."
+    info "Encontrados $count backup(s). Restaurando todas las bases con --all..."
     
-    # Restaurar n8n_db
-    if [ -f "${SCRIPT_DIR}/backup/n8n_db_2025-12-06.sql" ]; then
-        info "Restaurando n8n_db..."
-        echo "SI" | "${SCRIPT_DIR}/scripts/restore.sh" n8n_db 2025-12-06 >/dev/null 2>&1 && success "n8n_db restaurada" || warning "Error en n8n_db"
+    # Ejecutar restore.sh con --all y --no-confirm para restaurar automáticamente todas las DB
+    if "${SCRIPT_DIR}/scripts/restore.sh" --all --no-confirm; then
+        success "Todas las bases de datos restauradas correctamente"
+    else
+        warning "Ocurrió un error durante la restauración de bases de datos"
     fi
     
-    # Restaurar metabase_db
-    if [ -f "${SCRIPT_DIR}/backup/metabase_db_2025-12-06.sql" ]; then
-        info "Restaurando metabase_db..."
-        echo "SI" | "${SCRIPT_DIR}/scripts/restore.sh" metabase_db 2025-12-06 >/dev/null 2>&1 && success "metabase_db restaurada" || warning "Error en metabase_db"
-    fi
-    
-    # Restaurar nocodb_db
-    if [ -f "${SCRIPT_DIR}/backup/nocodb_db_2025-12-06.sql" ]; then
-        info "Restaurando nocodb_db..."
-        echo "SI" | "${SCRIPT_DIR}/scripts/restore.sh" nocodb_db 2025-12-06 >/dev/null 2>&1 && success "nocodb_db restaurada" || warning "Error en nocodb_db"
-    fi
-    
-    # Restaurar serviciosaf_db
-    if [ -f "${SCRIPT_DIR}/backup/serviciosaf_db_2025-12-06.sql" ]; then
-        info "Restaurando serviciosaf_db..."
-        echo "SI" | "${SCRIPT_DIR}/scripts/restore.sh" serviciosaf_db 2025-12-06 >/dev/null 2>&1 && success "serviciosaf_db restaurada" || warning "Error en serviciosaf_db"
-    fi
-    
-    success "Restauración de backups completada"
     echo ""
 }
 
