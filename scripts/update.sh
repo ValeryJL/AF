@@ -17,4 +17,6 @@ docker compose pull
 echo "[INFO] Levantando servicios..."
 docker compose up -d
 
-echo "[INFO] Actualización finalizada correctamente"
+echo "[INFO] Actualización finalizada correctamente, reiniciando..."
+
+sudo reboot
