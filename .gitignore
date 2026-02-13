@@ -24,3 +24,9 @@ docs/
 *.swp
 *.swo
 *~
+
+# Archivos generados por Gemini
+GEMINI.md
+.gemini/
+
+gha-creds-*.json

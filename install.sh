@@ -77,19 +77,6 @@ check_prerequisites() {
     fi
     success "Docker Compose disponible"
     
-    # Verificar archivo .env
-    if [ ! -f "$ENV_FILE" ]; then
-        error "Archivo .env no encontrado"
-        echo ""
-        echo "El archivo .env es requerido. Por favor, crea uno con:"
-        echo "  POSTGRES_USER=admin"
-        echo "  POSTGRES_PASSWORD=<contraseña_segura>"
-        echo "  POSTGRES_DB=postgres"
-        echo "  POSTGRES_PORT=5432"
-        exit 1
-    fi
-    success "Archivo .env encontrado"
-    
     # Verificar docker-compose.yml
     if [ ! -f "${SCRIPT_DIR}/docker-compose.yml" ]; then
         error "Archivo docker-compose.yml no encontrado"
@@ -187,65 +174,112 @@ validate_docker_setup() {
 }
 
 ################################################################################
-# Cargar variables de entorno
+# Cargar y Validar variables de entorno
 ################################################################################
 
 load_environment() {
-    print_step "Cargando variables de entorno..."
-    
-    # Si el archivo .env no existe, crear uno
+    print_step "Cargando y validando variables de entorno..."
+
+    # 1. Crear .env base si no existe
     if [ ! -f "$ENV_FILE" ]; then
-        info "Archivo .env no encontrado, creando uno..."
-        
-        # Generar contraseña segura
-        local postgres_password=$(openssl rand -base64 32)
-        
-        # Crear .env con valores por defecto
+        info "Archivo .env no encontrado, creando uno base..."
+        local postgres_password=$(openssl rand -base64 24)
+        local n8n_key=$(openssl rand -hex 24)
+
         cat > "$ENV_FILE" << EOF
-# Configuración de PostgreSQL
+# --- POSTGRES ---
 POSTGRES_USER=admin
 POSTGRES_PASSWORD=$postgres_password
 POSTGRES_DB=postgres
 POSTGRES_PORT=5432
 
-# Nombres de bases de datos
+# --- DATABASES ---
 N8N_DB_NAME=n8n_db
 METABASE_DB_NAME=metabase_db
 NOCODB_DB_NAME=nocodb_db
 SERVICIOSAF_DB_NAME=serviciosaf_db
 
-# Configuración de n8n
+# --- N8N ---
+N8N_ENCRYPTION_KEY=$n8n_key
 NODE_ENV=production
 TIMEZONE=America/Argentina/Buenos_Aires
-N8N_HOST=n8n.example.com
+N8N_HOST=localhost
 N8N_PORT=5678
 N8N_PROTOCOL=https
-N8N_WEBHOOK_URL=https://n8n.example.com/
+N8N_WEBHOOK_URL=https://localhost/
 
-# Token de Cloudflared
+# --- CLOUDFLARE ---
 CLOUDFLARED_TOKEN=
 EOF
-        
-        success ".env creado con contraseña segura"
-        warning "⚠️  IMPORTANTE: Edita el .env con tus datos:"
-        echo "  - N8N_HOST: cambiar a tu dominio"
-        echo "  - CLOUDFLARED_TOKEN: agregar tu token de Cloudflare"
-        echo ""
-        info "Luego ejecuta: ./install.sh"
-        exit 0
+        success ".env creado exitosamente"
     fi
-    
+
+    # 2. Cargar variables al shell actual
     set -a
     source "$ENV_FILE"
     set +a
-    
-    # Validar variables críticas
-    if [ -z "$POSTGRES_USER" ] || [ -z "$POSTGRES_PASSWORD" ]; then
-        error "Variables POSTGRES_USER o POSTGRES_PASSWORD no configuradas en .env"
+
+    # 3. COMPROBACIONES Y CORRECCIONES DINÁMICAS
+    local errors=0
+
+    # A. Validar/Generar Clave de Encriptación de n8n
+    if [[ -z "$N8N_ENCRYPTION_KEY" ]]; then
+        warning "N8N_ENCRYPTION_KEY no detectada. Generando una..."
+        local new_n8n_key=$(openssl rand -hex 24)
+        echo "N8N_ENCRYPTION_KEY=$new_n8n_key" >> "$ENV_FILE"
+        N8N_ENCRYPTION_KEY=$new_n8n_key
+        success "Clave de n8n inyectada."
+    fi
+
+    # B. Validar Dominio de n8n (N8N_HOST)
+    if [[ -z "$N8N_HOST" ]] || [[ "$N8N_HOST" == "localhost" ]] || [[ "$N8N_HOST" == "n8n.example.com" ]]; then
+        echo -e "${CYAN}------------------------------------------------------------------${NC}"
+        warning "Configuración de dominio de n8n incompleta."
+        read -p "Ingresá el dominio para n8n (ej: n8n.afconstrucciones.com): " user_host
+        echo -e "${CYAN}------------------------------------------------------------------${NC}"
+
+        if [[ -n "$user_host" ]]; then
+            sed -i "s|^N8N_HOST=.*|N8N_HOST=$user_host|" "$ENV_FILE"
+            # También actualizamos la Webhook URL para que coincida
+            sed -i "s|^N8N_WEBHOOK_URL=.*|N8N_WEBHOOK_URL=https://$user_host/|" "$ENV_FILE"
+            N8N_HOST=$user_host
+            success "Dominio actualizado a: $user_host"
+        else
+            info "Se mantendrá el host por defecto ($N8N_HOST)."
+        fi
+    fi
+
+    # C. Validar Cloudflare Token
+    if [[ -z "$CLOUDFLARED_TOKEN" ]]; then
+        echo -e "${CYAN}------------------------------------------------------------------${NC}"
+        warning "CLOUDFLARED_TOKEN no configurado."
+        read -p "Ingresá tu Cloudflared Token (ENTER para omitir): " user_token
+        echo -e "${CYAN}------------------------------------------------------------------${NC}"
+        
+        if [[ -n "$user_token" ]]; then
+            if grep -q "CLOUDFLARED_TOKEN=" "$ENV_FILE"; then
+                sed -i "s|^CLOUDFLARED_TOKEN=.*|CLOUDFLARED_TOKEN=$user_token|" "$ENV_FILE"
+            else
+                echo "CLOUDFLARED_TOKEN=$user_token" >> "$ENV_FILE"
+            fi
+            CLOUDFLARED_TOKEN=$user_token
+            success "Token de Cloudflare guardado."
+        fi
+    fi
+
+    # D. Validar Datos de Postgres
+    if [[ -z "$POSTGRES_PASSWORD" ]] || [[ "$POSTGRES_PASSWORD" == "changeme" ]]; then
+        error "POSTGRES_PASSWORD no es válida."
+        errors=$((errors + 1))
+    fi
+
+    # 4. Finalización
+    if [ $errors -gt 0 ]; then
+        error "Se encontraron $errors errores críticos. Corregí el .env y reintentá."
         exit 1
     fi
-    
-    success "Variables de entorno cargadas"
+
+    success "Configuración validada."
 }
 
 ################################################################################
