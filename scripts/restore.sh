@@ -9,6 +9,7 @@ BACKUP_DIR="$HOME/AF/backup"
 POSTGRES_CONTAINER="postgres"
 POSTGRES_USER="admin"
 
+# Lista completa de bases de datos
 DBS=(
   n8n_db
   metabase_db
@@ -16,6 +17,7 @@ DBS=(
   serviciosaf_db
 )
 
+# Servicios que dependen de la DB
 SERVICES=(
   n8n
   metabase
@@ -27,6 +29,7 @@ SERVICES=(
 # FLAGS
 ############################
 RESTORE_ALL=false
+SELECTED_DB=""
 NO_CONFIRM=false
 DRY_RUN=false
 
@@ -43,7 +46,6 @@ NC='\033[0m'
 # LOGGING
 ############################
 ts() { date '+%Y-%m-%d %H:%M:%S'; }
-
 log()      { echo -e "[$(ts)] [LOG]      $1"; }
 info()     { echo -e "${BLUE}[$(ts)] [INFO]     $1${NC}"; }
 warn()     { echo -e "${YELLOW}[$(ts)] [WARN]     $1${NC}"; }
@@ -56,141 +58,129 @@ run() {
     log "DRY-RUN: comando no ejecutado"
     return 0
   fi
-
   eval "$@"
-  RC=$?
-  log "EXIT CODE: $RC"
-  return $RC
 }
 
 section() {
-  echo
-  echo "========================================"
-  echo "$1"
-  echo "========================================"
-  echo
+  echo -e "\n${BLUE}========================================${NC}"
+  echo -e "${BLUE}$1${NC}"
+  echo -e "${BLUE}========================================${NC}\n"
 }
 
 ############################
 # ARGUMENTOS
 ############################
-log "Argumentos recibidos: $*"
-
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --all) RESTORE_ALL=true ;;
+    --db) shift; SELECTED_DB="$1" ;;
     --no-confirm) NO_CONFIRM=true ;;
     --dry-run) DRY_RUN=true ;;
-    *)
-      error "Argumento desconocido: $1"
-      exit 1
-      ;;
+    *) error "Argumento desconocido: $1"; exit 1 ;;
   esac
   shift
 done
 
 ############################
-# HEADER
-############################
-section "RESTORE DEBUG – $PROJECT_NAME"
-
-############################
 # VALIDACIONES
 ############################
-info "Verificando BACKUP_DIR: $BACKUP_DIR"
+section "RESTORE SYSTEM – $PROJECT_NAME"
+
 if [ ! -d "$BACKUP_DIR" ]; then
-  error "El directorio de backups NO existe"
+  error "El directorio de backups NO existe en $BACKUP_DIR"
   exit 1
-else
-  ls -lh "$BACKUP_DIR"
 fi
 
-info "Verificando contenedor PostgreSQL"
 if ! docker ps -a --format '{{.Names}}' | grep -qx "$POSTGRES_CONTAINER"; then
-  error "Contenedor PostgreSQL '$POSTGRES_CONTAINER' no encontrado"
+  error "Contenedor PostgreSQL '$POSTGRES_CONTAINER' no encontrado."
   exit 1
+fi
+
+# Validar que si se eligió una DB, esta sea parte de la lista permitida
+if [[ -n "$SELECTED_DB" ]]; then
+    FOUND=false
+    for db in "${DBS[@]}"; do
+        [[ "$db" == "$SELECTED_DB" ]] && FOUND=true
+    done
+    if [ "$FOUND" = false ]; then
+        error "La base de datos '$SELECTED_DB' no está en la lista de configuración (DBS)."
+        exit 1
+    fi
 fi
 
 ############################
 # DETECTAR SERVICIOS ACTIVOS
 ############################
 ACTIVE_SERVICES=()
-info "Detectando servicios activos..."
-
+info "Detectando servicios activos para detener..."
 for svc in "${SERVICES[@]}"; do
   if docker ps --format '{{.Names}}' | grep -qx "$svc"; then
-    info "Servicio activo detectado: $svc"
     ACTIVE_SERVICES+=("$svc")
-  else
-    log "Servicio NO activo: $svc"
   fi
 done
 
-info "Servicios activos finales: ${ACTIVE_SERVICES[*]:-NINGUNO}"
-
 ############################
-# CONFIRMACION
-############################
-if ! $NO_CONFIRM && ! $DRY_RUN; then
-  warn "ESTO VA A BORRAR BASES DE DATOS"
-  read -rp "Escribí YES para continuar: " CONFIRM
-  [[ "$CONFIRM" == "YES" ]] || exit 1
-fi
-
-############################
-# FUNCIONES DE SERVICIOS
+# FUNCIONES DE EJECUCIÓN
 ############################
 stop_services() {
-  info "Deteniendo servicios..."
+  [[ ${#ACTIVE_SERVICES[@]} -eq 0 ]] && return
+  info "Deteniendo servicios: ${ACTIVE_SERVICES[*]}"
   for svc in "${ACTIVE_SERVICES[@]}"; do
     run "docker stop $svc"
   done
 }
 
 start_services() {
-  info "Iniciando servicios..."
+  [[ ${#ACTIVE_SERVICES[@]} -eq 0 ]] && return
+  info "Reiniciando servicios..."
   for svc in "${ACTIVE_SERVICES[@]}"; do
     run "docker start $svc"
   done
 }
 
-############################
-# FUNCION RESTORE DB
-############################
 restore_db() {
   local DB="$1"
-  section "RESTORE DB: $DB"
-
+  echo -e "\n--- Restaurando: $DB ---"
   local FILE
   FILE=$(ls -t "$BACKUP_DIR"/${DB}_*.sql 2>/dev/null | head -1 || true)
 
   if [ -z "$FILE" ]; then
-    warn "NO HAY BACKUP PARA $DB"
+    warn "No se encontró ningún archivo de backup para $DB en $BACKUP_DIR"
     return 0
   fi
 
-  info "Usando backup: $FILE"
-
+  info "Archivo detectado: $(basename "$FILE")"
+  
   run "docker exec $POSTGRES_CONTAINER psql -U $POSTGRES_USER -d postgres -c \"DROP DATABASE IF EXISTS $DB WITH (FORCE);\""
   run "docker exec $POSTGRES_CONTAINER psql -U $POSTGRES_USER -d postgres -c \"CREATE DATABASE $DB;\""
   run "docker exec -i $POSTGRES_CONTAINER psql -U $POSTGRES_USER -d $DB < \"$FILE\""
-
-  success "Restore finalizado para $DB"
+  
+  success "Base de datos $DB restaurada."
 }
 
 ############################
-# EJECUCION
+# MAIN
 ############################
+if ! $RESTORE_ALL && [[ -z "$SELECTED_DB" ]]; then
+  error "Debes especificar --all o --db <nombre_db>"
+  exit 1
+fi
+
+# Confirmación
+if ! $NO_CONFIRM; then
+  warn "ESTO REEMPLAZARÁ LOS DATOS ACTUALES"
+  read -rp "Escribí YES para proceder con el restore: " CONFIRM
+  [[ "$CONFIRM" == "YES" ]] || { error "Operación cancelada"; exit 1; }
+fi
+
 stop_services
 
 if $RESTORE_ALL; then
-  for db in "${DBS[@]}"; do
-    restore_db "$db"
-  done
+  for db in "${DBS[@]}"; do restore_db "$db"; done
 else
-  warn "--all no especificado, no se restauran bases"
+  restore_db "$SELECTED_DB"
 fi
 
 start_services
 
-success "RESTORE DEBUG FINALIZADO"
+success "PROCESO FINALIZADO EXITOSAMENTE"
